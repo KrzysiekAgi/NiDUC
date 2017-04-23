@@ -7,6 +7,7 @@ classdef Simulation < handle
         ErrorControlVer = 'CRC32' % CRC32(Cyclic Redundancy Check) or 2z5(kod 2 z 5)
         ProtocolVer = 'SAN' % SAN(Stop-and-Wait) or GBN(Go-Back-N)
         PacketSize = 32 % Transfered Packet Size
+        PacketsCount = 10 % Number of packets
         BitTransmissionRate = 1000 % Bit transmission rate for time calculations
         ErrorRate = 0.1 % Probability of bit error value <0.0,0.5>
     end
@@ -28,6 +29,10 @@ classdef Simulation < handle
             obj.PacketSize = size;
         end
         
+        function setPacketsCount(obj,count) % setting Packets Count
+            obj.PacketsCount = count;
+        end
+        
         function setBitTransRate(obj,speed) % setting bit transmission rate
             obj.BitTransmissionRate = speed;
         end
@@ -37,36 +42,41 @@ classdef Simulation < handle
         end
         
         function simulate(obj)
-            % generowanie podzielonych pakietow
-            PacketsCount = 10; % Placeholder value
-            PacketMatrix = generatePackets(PacketsCount, obj.PacketSize);
+            % generowanie podzielonych pakietow i czasow przesylania
+            WindowSizeGBN = 5; % !!!Placeholder value!!!
+            PacketMatrix = generatePackets(obj.PacketsCount, obj.PacketSize);
             PacketTransferTime = obj.PacketSize/obj.BitTransmissionRate; % time in seconds
-            TimeoutTime = PacketTrasnferTime * 5;
+            TimeoutTime = PacketTransferTime * 5; % !!!Placeholder value!!!
             OperationTime = 0;
             
+            PacketMatrixBeforeCoding = PacketMatrix;
             % kodowanie
-            if obj.ErrorControlVer == 'CRC32'
-               kodujcrc32(PacketMatrix);
-            elseif obj.ErrorControlVer == '2z5'
-               koduj2z5(PacketMatrix);
+            if strcmp(obj.ErrorControlVer,'CRC32')
+               PacketMatrix = kodujcrc32(PacketMatrix);
+            elseif strcmp(obj.ErrorControlVer,'2z5')
+               PacketMatrix = koduj2z5(PacketMatrix);
             end
             
             RecievedPacketMatrix = []; % for later BER calculations
-            if obj.ProtocolVer == 'SAW'
+            if strcmp(obj.ProtocolVer,'SAW')
                 % ------------STOP AND WAIT-----------
-                for i=1:PacketsCount % po kolei pakiety
+                for i=1:obj.PacketsCount % po kolei pakiety
                     IsRecieved = false;
                     while ~IsRecieved %notReceived
                         % przesylanie
-                        if ModelVer == 'BSC'  
-                            recievedPacket = kanalBSC(PacketMatrix(i,:));
-                        elseif ModelVer == 'BEC'
-                            recievedPacket = kanalErasure(PacketMatrix(i,:));
+                        if strcmp(obj.ModelVer,'BSC')  
+                            recievedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
+                        elseif strcmp(obj.ModelVer,'BEC')
+                            recievedPacket = kanalErasure(PacketMatrix(i,:), obj.ErrorRate);
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie/sprawdzenie
-                        [IsRecieved, Packet] = dekoduj2z5(recievedPacket);
-                        [IsRecieved, Packet] = dekodujcrc32(recievedPacket);
+                        if strcmp(obj.ErrorControlVer,'CRC32')
+                            [IsRecieved, Packet] = dekodujcrc32(recievedPacket);
+                        elseif strcmp(obj.ErrorControlVer,'2z5')
+                            [IsRecieved, Packet] = dekoduj2z5(recievedPacket);
+                        end
+                        
                         if ~IsRecieved
                             OperationTime = OperationTime + TimeoutTime;
                         end
@@ -74,22 +84,52 @@ classdef Simulation < handle
                     % dodajemy pakiet do wynik
                     RecievedPacketMatrix = [RecievedPacketMatrix Packet]
                 end
-            elseif obj.ProtocolVer == 'GBN'
+                RecievedPacketMatrix = vec2mat(RecievedPacketMatrix,obj.PacketSize);
+            elseif strcmp(obj.ProtocolVer,'GBN')
                 % -------------GO BACK N------------
-                for i=1:1% po kolei pakiety
-                    while 1 %notReceived
-                        % przesylanie
-                        recievedPacket = kanalBSC(PacketMatrix(i,:));
-                        recievedPacket = kanalErasure(PacketMatrix(i,:));
-                        % odkodowanie/sprawdzenie
-                        dekoduj2z5();
-                        dekodujcrc32();
+                i = 1;
+                while i < obj.PacketsCount
+                    Responses = [];
+                    PacketsRecieved = [];
+                    
+                    % setting smaller last window
+                    if i+WindowSizeGBN > obj.PacketsCount
+                        WindowSizeGBN = obj.PacketsCount - i; 
                     end
-                    % dodajemy pakiet do wynik
+                    
+                    % sending window size number of packets
+                    for j=i:(i+WindowSizeGBN) 
+                        % przesylanie
+                        if strcmp(obj.ModelVer,'BSC')  
+                            recievedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
+                        elseif strcmp(obj.ModelVer,'BEC')
+                            recievedPacket = kanalErasure(PacketMatrix(i,:), obj.ErrorRate);
+                        end
+                        OperationTime = OperationTime + PacketTransferTime;
+                        % odkodowanie
+                        if strcmp(obj.ErrorControlVer,'CRC32')
+                            [IsRecieved, Packet] = dekodujcrc32(recievedPacket);
+                        elseif strcmp(obj.ErrorControlVer,'2z5')
+                            [IsRecieved, Packet] = dekoduj2z5(recievedPacket);
+                        end
+                        Responses = [Responses IsRecieved];
+                        PacketsRecieved = [PacketsRecieved Packet];
+                    end
+                    PacketsRecieved = vec2mat(PacketsRecieved,obj.PacketSize);
+                    for j=1:WindowSizeGBN % managing responses / moving window
+                        if Responses(j)
+                            RecievedPacketMatrix = [RecievedPacketMatrix PacketsRecieved(j,:)];
+                            i = i + 1;
+                        else
+                            OperationTime = OperationTime + TimeoutTime;
+                            break;
+                        end
+                    end
                 end
             end
             % -------------------------
             % porównanie
+            [number, ratio] = biterr(PacketMatrixBeforeCoding, RecievedPacketMatrix);
         end
     end
     
