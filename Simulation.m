@@ -3,12 +3,12 @@ classdef Simulation < handle
     %   Detailed explanation goes here
     
     properties
-        ModelVer = 'BSC' % BSC(Binary Symetric Channel)
+        ModelVer = 'BSC' % BSC(Binary Symetric Channel) or BEC(Binary Erasure Channel)
         ErrorControlVer = 'CRC32' % CRC32(Cyclic Redundancy Check) or 2z5(kod 2 z 5)
         ProtocolVer = 'SAN' % SAN(Stop-and-Wait) or GBN(Go-Back-N)
         PacketSize = 32 % Transfered Packet Size
-        BitTransmissionRate = 1000
-        ErrorRate = 5
+        BitTransmissionRate = 1000 % Bit transmission rate for time calculations
+        ErrorRate = 0.1 % Probability of bit error value <0.0,0.5>
     end
     
     methods
@@ -28,11 +28,17 @@ classdef Simulation < handle
             obj.PacketSize = size;
         end
         
+        function setBitTransRate(obj,speed) % setting bit transmission rate
+            obj.BitTransmissionRate = speed;
+        end
+        
+        function setErrorRate(obj,rate) % setting bit error probability
+            obj.ErrorRate = rate;
+        end
+        
         function simulate(obj)
-            % generowanie
+            % generowanie podzielonych pakietow
             X1 = generate(lenght, obj.PacketSize);
-            % podzial na pakiety
-            X2 = packets(X1, obj.PacketSize);
             % kodowanie
             koduj2z5(X2);
             kodujcrc32(X2);
