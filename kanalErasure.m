@@ -1,12 +1,11 @@
 function [corruptedData] = kanalErasure (data, p)
 [m,n]=size(data);
 j=1;
-   for i=1:n
+   for i=1:(n*m)
      if rand(1,1)>p
       corruptedData(j)=data(i);
-      j++;
+      j = j + 1;
      else
-      endif
-   endfor
-    
-endfunction
+     end
+   end
+end
