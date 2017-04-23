@@ -1,4 +1,4 @@
-function [ output_args ] = dekodujcrc32( input_args )
+function [IsValid, uncodedData] = dekodujcrc32( data )
 %DEKODUJCRC32 Summary of this function goes here
 %   Detailed explanation goes here
 

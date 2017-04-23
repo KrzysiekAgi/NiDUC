@@ -38,36 +38,55 @@ classdef Simulation < handle
         
         function simulate(obj)
             % generowanie podzielonych pakietow
-            X1 = generate(lenght, obj.PacketSize);
+            PacketsCount = 10; % Placeholder value
+            PacketMatrix = generatePackets(PacketsCount, obj.PacketSize);
+            PacketTransferTime = obj.PacketSize/obj.BitTransmissionRate; % time in seconds
+            TimeoutTime = PacketTrasnferTime * 5;
+            OperationTime = 0;
+            
             % kodowanie
-            koduj2z5(X2);
-            kodujcrc32(X2);
-            % ------------STOP AND WAIT-----------
-            for % po kolei pakiety
-                while(notReceived)
-                    % przesylanie
-                    kanalBSC();
-                    kanalErasure(); % albo gilbert
-                    % odkodowanie/sprawdzenie
-                    dekoduj2z5();
-                    dekodujcrc32();
-                end
-                % dodajemy pakiet do wynik
+            if obj.ErrorControlVer == 'CRC32'
+               kodujcrc32(PacketMatrix);
+            elseif obj.ErrorControlVer == '2z5'
+               koduj2z5(PacketMatrix);
             end
-            % -------------------------
-            % -------------GO BACK N------------
-            for % po kolei pakiety
-                
-                while(notReceived)
-                    
-                    % przesylanie
-                    kanalBSC();
-                    kanalErasure(); % albo gilbert
-                    % odkodowanie/sprawdzenie
-                    dekoduj2z5();
-                    dekodujcrc32();
+            
+            RecievedPacketMatrix = []; % for later BER calculations
+            if obj.ProtocolVer == 'SAW'
+                % ------------STOP AND WAIT-----------
+                for i=1:PacketsCount % po kolei pakiety
+                    IsRecieved = false;
+                    while ~IsRecieved %notReceived
+                        % przesylanie
+                        if ModelVer == 'BSC'  
+                            recievedPacket = kanalBSC(PacketMatrix(i,:));
+                        elseif ModelVer == 'BEC'
+                            recievedPacket = kanalErasure(PacketMatrix(i,:));
+                        end
+                        OperationTime = OperationTime + PacketTransferTime;
+                        % odkodowanie/sprawdzenie
+                        [IsRecieved, Packet] = dekoduj2z5(recievedPacket);
+                        [IsRecieved, Packet] = dekodujcrc32(recievedPacket);
+                        if ~IsRecieved
+                            OperationTime = OperationTime + TimeoutTime;
+                        end
+                    end
+                    % dodajemy pakiet do wynik
+                    RecievedPacketMatrix = [RecievedPacketMatrix Packet]
                 end
-                % dodajemy pakiet do wynik
+            elseif obj.ProtocolVer == 'GBN'
+                % -------------GO BACK N------------
+                for i=1:1% po kolei pakiety
+                    while 1 %notReceived
+                        % przesylanie
+                        recievedPacket = kanalBSC(PacketMatrix(i,:));
+                        recievedPacket = kanalErasure(PacketMatrix(i,:));
+                        % odkodowanie/sprawdzenie
+                        dekoduj2z5();
+                        dekodujcrc32();
+                    end
+                    % dodajemy pakiet do wynik
+                end
             end
             % -------------------------
             % porównanie
