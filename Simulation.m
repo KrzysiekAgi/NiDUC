@@ -43,7 +43,7 @@ classdef Simulation < handle
         
         function simulate(obj)
             % generowanie podzielonych pakietow i czasow przesylania
-            WindowSizeGBN = 5; % !!!Placeholder value!!!
+            WindowSizeGBN = 20; % !!!Placeholder value!!!
             PacketMatrix = generatePackets(obj.PacketsCount, obj.PacketSize);
             PacketTransferTime = obj.PacketSize/obj.BitTransmissionRate; % time in seconds
             TimeoutTime = PacketTransferTime * 5; % !!!Placeholder value!!!
@@ -82,28 +82,27 @@ classdef Simulation < handle
                         end
                     end
                     % dodajemy pakiet do wynik
-                    RecievedPacketMatrix = [RecievedPacketMatrix Packet]
+                    RecievedPacketMatrix = [RecievedPacketMatrix Packet];
                 end
-                RecievedPacketMatrix = vec2mat(RecievedPacketMatrix,obj.PacketSize);
             elseif strcmp(obj.ProtocolVer,'GBN')
                 % -------------GO BACK N------------
                 i = 1;
-                while i < obj.PacketsCount
+                while i <= obj.PacketsCount
                     Responses = [];
                     PacketsRecieved = [];
                     
                     % setting smaller last window
-                    if i+WindowSizeGBN > obj.PacketsCount
-                        WindowSizeGBN = obj.PacketsCount - i; 
+                    if i+WindowSizeGBN-1 > obj.PacketsCount
+                        WindowSizeGBN = (obj.PacketsCount - i)+1; 
                     end
                     
                     % sending window size number of packets
-                    for j=i:(i+WindowSizeGBN) 
+                    for j=i:(i+WindowSizeGBN-1) 
                         % przesylanie
                         if strcmp(obj.ModelVer,'BSC')  
-                            recievedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
+                            recievedPacket = kanalBSC(PacketMatrix(j,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
-                            recievedPacket = kanalErasure(PacketMatrix(i,:), obj.ErrorRate);
+                            recievedPacket = kanalErasure(PacketMatrix(j,:), obj.ErrorRate);
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie
@@ -129,7 +128,9 @@ classdef Simulation < handle
             end
             % -------------------------
             % porównanie
-            %[number, ratio] = biterr(PacketMatrixBeforeCoding, RecievedPacketMatrix);
+            RecievedPacketMatrix = vec2mat(RecievedPacketMatrix,obj.PacketSize);
+            [number, ratio] = biterr(PacketMatrixBeforeCoding, RecievedPacketMatrix)
+            OperationTime
         end
     end
     
