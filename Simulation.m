@@ -5,7 +5,7 @@ classdef Simulation < handle
     properties
         ModelVer = 'BSC' % BSC(Binary Symetric Channel) or BEC(Binary Erasure Channel)
         ErrorControlVer = 'CRC32' % CRC32(Cyclic Redundancy Check) or 2z5(kod 2 z 5)
-        ProtocolVer = 'SAN' % SAN(Stop-and-Wait) or GBN(Go-Back-N)
+        ProtocolVer = 'SAW' % SAW(Stop-and-Wait) or GBN(Go-Back-N)
         PacketSize = 32 % Transfered Packet Size
         PacketsCount = 10 % Number of packets
         BitTransmissionRate = 1000 % Bit transmission rate for time calculations
@@ -129,7 +129,7 @@ classdef Simulation < handle
             end
             % -------------------------
             % porównanie
-            [number, ratio] = biterr(PacketMatrixBeforeCoding, RecievedPacketMatrix);
+            %[number, ratio] = biterr(PacketMatrixBeforeCoding, RecievedPacketMatrix);
         end
     end
     
