@@ -7,21 +7,22 @@ function [IsReceived, uncodedData] = dekoduj2z5( receivedPacket )
 %   pierwszy bit informuje o tym, czy zakodowane dane
 %   uleg³y zniszczeniu podczas transmisji
 
-[m n] = size(receivedPacket)
+[m n] = size(receivedPacket);
 numberOfBits= n/5;
 uncodedData = zeros(1, numberOfBits);
 IsReceived = true;
+codedOne = [1 0 1 0 0];
+codedZero = [1 1 0 0 0];
+
 for i=1:numberOfBits
     przedzial = [(5*(i-1))+1 (5*i)];
-    codedBit = receivedPacket(1,przedzial(1):przedzial(2))
-    codedOne = [1 1 0 0 0];
-    codedZero = [1 0 1 0 0];
+    codedBit = receivedPacket(1,przedzial(1):przedzial(2));
     if isequal(codedBit, codedZero)
-       uncodedData = [uncodedData 0]; 
+       uncodedData(i) = 0; 
     elseif isequal(codedBit, codedOne)
-       uncodedData = [uncodedData 1];
+       uncodedData(i) = 1;
     else
-       uncodedData = [uncodedData 1];
+       uncodedData(i) = 1;
        IsReceived = false;
     end
 end    

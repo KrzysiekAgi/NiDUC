@@ -46,7 +46,7 @@ classdef Simulation < handle
             WindowSizeGBN = 20; % !!!Placeholder value!!!
             PacketMatrix = generatePackets(obj.PacketsCount, obj.PacketSize);
             PacketTransferTime = obj.PacketSize/obj.BitTransmissionRate; % time in seconds
-            TimeoutTime = PacketTransferTime * 5; % !!!Placeholder value!!!
+            TimeoutTime = PacketTransferTime * 10; % !!!Placeholder value!!!
             OperationTime = 0;
             
             PacketMatrixBeforeCoding = PacketMatrix;
@@ -57,7 +57,7 @@ classdef Simulation < handle
                PacketMatrix = koduj2z5(PacketMatrix);
             end
             
-            ReceivedPacketMatrix = []; % for later BER calculations
+            ReceivedPacketMatrix = zeros(1,obj.PacketSize*obj.PacketsCount); % for later BER calculations
             if strcmp(obj.ProtocolVer,'SAW')
                 % ------------STOP AND WAIT-----------
                 for i=1:obj.PacketsCount % po kolei pakiety
@@ -82,13 +82,13 @@ classdef Simulation < handle
                         end
                     end
                     % dodajemy pakiet do wynik
-                    ReceivedPacketMatrix = [ReceivedPacketMatrix Packet];
+                    ReceivedPacketMatrix(1,(((i-1)*obj.PacketSize)+1):((i*obj.PacketSize))) = Packet;
                 end
             elseif strcmp(obj.ProtocolVer,'GBN')
                 % -------------GO BACK N------------
                 i = 1;
                 while i <= obj.PacketsCount
-                    Responses = [];
+                    Responses = zeros(1,WindowSizeGBN);
                     PacketsRecieved = [];
                     
                     % setting smaller last window
@@ -97,6 +97,7 @@ classdef Simulation < handle
                     end
                     
                     % sending window size number of packets
+                    WindowStep = 1;
                     for j=i:(i+WindowSizeGBN-1) 
                         % przesylanie
                         if strcmp(obj.ModelVer,'BSC')  
@@ -111,13 +112,14 @@ classdef Simulation < handle
                         elseif strcmp(obj.ErrorControlVer,'2z5')
                             [IsReceived, Packet] = dekoduj2z5(receivedPacket);
                         end
-                        Responses = [Responses IsReceived];
-                        PacketsRecieved = [PacketsRecieved Packet];
+                        Responses(1,WindowStep) = IsReceived;
+                        PacketsRecieved(1,(((WindowStep-1)*obj.PacketSize)+1):((WindowStep*obj.PacketSize))) = Packet;
+                        WindowStep = WindowStep + 1;
                     end
                     PacketsRecieved = vec2mat(PacketsRecieved,obj.PacketSize);
                     for j=1:WindowSizeGBN % managing responses / moving window
                         if Responses(j)
-                            ReceivedPacketMatrix = [ReceivedPacketMatrix PacketsRecieved(j,:)];
+                            ReceivedPacketMatrix(1,(((i-1)*obj.PacketSize)+1):((i*obj.PacketSize))) = PacketsRecieved(j,:);
                             i = i + 1;
                         else
                             OperationTime = OperationTime + TimeoutTime;
