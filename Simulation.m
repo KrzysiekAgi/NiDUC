@@ -48,6 +48,7 @@ classdef Simulation < handle
             PacketTransferTime = obj.PacketSize/obj.BitTransmissionRate; % time in seconds
             TimeoutTime = PacketTransferTime * 10; % !!!Placeholder value!!!
             OperationTime = 0;
+            ResendPackageCounter = 0;
             
             PacketMatrixBeforeCoding = PacketMatrix;
             % kodowanie
@@ -79,6 +80,7 @@ classdef Simulation < handle
                         
                         if ~IsReceived
                             OperationTime = OperationTime + TimeoutTime;
+                            ResendPackageCounter = ResendPackageCounter + 1;
                         end
                     end
                     % dodajemy pakiet do wynik
@@ -123,6 +125,7 @@ classdef Simulation < handle
                             i = i + 1;
                         else
                             OperationTime = OperationTime + TimeoutTime;
+                            ResendPackageCounter = ResendPackageCounter + 1;
                             break;
                         end
                     end
@@ -133,6 +136,7 @@ classdef Simulation < handle
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
             [number, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix)
             OperationTime
+            ResendPackageCounter
         end
     end
     
