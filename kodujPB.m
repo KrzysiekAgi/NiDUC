@@ -3,7 +3,11 @@ function [codedData] = kodujPB( data )
 %   Detailed explanation goes here
 %   kodowanie/kontrola b³êdów za pomoc¹ bitu parzystoœci
 
-%pisane w Octavie, jeśli Matlab wywali syntax error, to pierwsze co sprawdźcie zmianę mod(sum(data),2) na sum(data) mod 2
-  codedData = [data, mod(sum(data),2)];
+  [m,n] = size(data);
+  codedData = zeros(m, n+1);
+  for i = 1:m
+      codedData(i,1:n) = data(i,1:n);
+      codedData(i,n+1) = mod(sum(data(i,1:n)),2);
+  end
 end
 
