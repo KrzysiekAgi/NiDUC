@@ -4,7 +4,7 @@ classdef Simulation < handle
     
     properties
         ModelVer = 'BSC' % BSC(Symetric) or BEC(Erasure) or CEC (Cyclic Error Channel)
-        ErrorControlVer = 'CRC32' % CRC32(Cyclic Redundancy Check) or 2z5(kod 2 z 5)
+        ErrorControlVer = 'CRC32' % CRC32(Cyclic Redundancy Check) or 2z5(kod 2 z 5) or PB(Parity Bit)
         ProtocolVer = 'SAW' % SAW(Stop-and-Wait) or GBN(Go-Back-N)
         PacketSize = 32 % Transfered Packet Size
         PacketsCount = 10 % Number of packets
@@ -56,6 +56,8 @@ classdef Simulation < handle
                PacketMatrix = kodujcrc32(PacketMatrix);
             elseif strcmp(obj.ErrorControlVer,'2z5')
                PacketMatrix = koduj2z5(PacketMatrix);
+            elseif strcmp(obj.ErrorControlVer,'PB')
+               PacketMatrix = kodujPB(PacketMatrix);
             end
             
             ReceivedPacketMatrix = zeros(1,obj.PacketSize*obj.PacketsCount); % for later BER calculations
@@ -78,6 +80,8 @@ classdef Simulation < handle
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                         elseif strcmp(obj.ErrorControlVer,'2z5')
                             [IsReceived, Packet] = dekoduj2z5(receivedPacket);
+                        elseif strcmp(obj.ErrorControlVer,'PB')
+                            [IsReceived, Packet] = dekodujPB(receivedPacket);
                         end
                         
                         if ~IsReceived
@@ -117,6 +121,8 @@ classdef Simulation < handle
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                         elseif strcmp(obj.ErrorControlVer,'2z5')
                             [IsReceived, Packet] = dekoduj2z5(receivedPacket);
+                        elseif strcmp(obj.ErrorControlVer,'PB')
+                            [IsReceived, Packet] = dekodujPB(receivedPacket);
                         end
                         Responses(1,WindowStep) = IsReceived;
                         PacketsRecieved(1,(((WindowStep-1)*obj.PacketSize)+1):((WindowStep*obj.PacketSize))) = Packet;
