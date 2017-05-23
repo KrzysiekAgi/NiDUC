@@ -45,20 +45,23 @@ classdef Simulation < handle
             % generowanie podzielonych pakietow i czasow przesylania
             WindowSizeGBN = 20; % !!!Placeholder value!!!
             PacketMatrix = generatePackets(obj.PacketsCount, obj.PacketSize);
-            PacketTransferTime = obj.PacketSize/obj.BitTransmissionRate; % time in seconds
-            TimeoutTime = PacketTransferTime * 10; % !!!Placeholder value!!!
             OperationTime = 0;
             ResendPackageCounter = 0;
-            
+           
             PacketMatrixBeforeCoding = PacketMatrix;
-            % kodowanie
+            % kodowanie + wyliczanie czasu zaleznie od metody kontroli
+            % bledow
             if strcmp(obj.ErrorControlVer,'CRC32')
                PacketMatrix = kodujcrc32(PacketMatrix);
+               PacketTransferTime = (obj.PacketSize+32)/obj.BitTransmissionRate; % time in seconds
             elseif strcmp(obj.ErrorControlVer,'2z5')
                PacketMatrix = koduj2z5(PacketMatrix);
+               PacketTransferTime = (obj.PacketSize*5)/obj.BitTransmissionRate; % time in seconds
             elseif strcmp(obj.ErrorControlVer,'PB')
                PacketMatrix = kodujPB(PacketMatrix);
+               PacketTransferTime = (obj.PacketSize+1)/obj.BitTransmissionRate; % time in seconds
             end
+            TimeoutTime = PacketTransferTime * 10; % !!!Placeholder value!!!
             
             ReceivedPacketMatrix = zeros(1,obj.PacketSize*obj.PacketsCount); % for later BER calculations
             if strcmp(obj.ProtocolVer,'SAW')
@@ -144,12 +147,10 @@ classdef Simulation < handle
             % -------------------------
             % porównanie
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
-            [number, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix)
-            OperationTime
-            ResendPackageCounter
+            [~, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix); % [ilosc bledow, procent bledow] - ilosc bledow nieuzywane
             % zapis parametrów i wyników do pliku
             fileID = fopen('data.txt','a');
-            format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d';
+            format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
             fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             fclose(fileID);
         end
