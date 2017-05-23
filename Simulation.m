@@ -3,13 +3,13 @@ classdef Simulation < handle
     %   Detailed explanation goes here
     
     properties
-        ModelVer = 'BSC' % BSC(Binary Symetric Channel) or BEC(Binary Erasure Channel)
+        ModelVer = 'BSC' % BSC(Symetric) or BEC(Erasure) or CEC (Cyclic Error Channel)
         ErrorControlVer = 'CRC32' % CRC32(Cyclic Redundancy Check) or 2z5(kod 2 z 5)
         ProtocolVer = 'SAW' % SAW(Stop-and-Wait) or GBN(Go-Back-N)
         PacketSize = 32 % Transfered Packet Size
         PacketsCount = 10 % Number of packets
         BitTransmissionRate = 1000 % Bit transmission rate for time calculations
-        ErrorRate = 0.1 % Probability of bit error value <0.0,0.5>
+        ErrorRate = 0.002 % Probability of bit error value <0.0,0.5>
     end
     
     methods
@@ -69,6 +69,8 @@ classdef Simulation < handle
                             receivedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
                             receivedPacket = kanalErasure(PacketMatrix(i,:), obj.ErrorRate);
+                        elseif strcmp(obj.ModelVer, 'CEC')
+                            receivedPacket = kanalCEC(PacketMatrix(i,:), obj.ErrorRate);
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie/sprawdzenie
@@ -106,6 +108,8 @@ classdef Simulation < handle
                             receivedPacket = kanalBSC(PacketMatrix(j,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
                             receivedPacket = kanalErasure(PacketMatrix(j,:), obj.ErrorRate);
+                        elseif strcmp(obj.ModelVer, 'CEC')
+                            receivedPacket = kanalCEC(PacketMatrix(j,:), obj.ErrorRate);    
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie
@@ -137,6 +141,11 @@ classdef Simulation < handle
             [number, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix)
             OperationTime
             ResendPackageCounter
+            % zapis parametrów i wyników do pliku
+            fileID = fopen('data.txt','a');
+            format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d';
+            fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
+            fclose(fileID);
         end
     end
     
