@@ -10,6 +10,8 @@ classdef Simulation < handle
         PacketsCount = 10 % Number of packets
         BitTransmissionRate = 1000 % Bit transmission rate for time calculations
         ErrorRate = 0.002 % Probability of bit error value <0.0,0.5>
+        SaveFilename = 'data.txt' % File to which the simulation data will be saved
+        str_LastSimulationData % For GUI simulation data print
     end
     
     methods
@@ -39,6 +41,10 @@ classdef Simulation < handle
         
         function setErrorRate(obj,rate) % setting bit error probability
             obj.ErrorRate = rate;
+        end
+        
+        function setSaveFilename(obj,filename) % setting filename to which save data
+            obj.SaveFilename = filename;
         end
         
         function simulate(obj)
@@ -149,10 +155,13 @@ classdef Simulation < handle
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
             [~, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix); % [ilosc bledow, procent bledow] - ilosc bledow nieuzywane
             % zapis parametrów i wyników do pliku
-            fileID = fopen('data.txt','a');
+            fileID = fopen(obj.SaveFilename,'a');
             format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
             fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             fclose(fileID);
+            % zapis parametrów i wyników do stringu
+            format = '%s;%s;%s;%d;%d;%d;%.3f;%.3f;%.3f;%d\n';
+            obj.str_LastSimulationData = sprintf(format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
         end
     end
     
