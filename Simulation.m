@@ -11,7 +11,7 @@ classdef Simulation < handle
         BitTransmissionRate = 1000 % Bit transmission rate for time calculations
         ErrorRate = 0.002 % Probability of bit error value <0.0,0.5>
         SaveFilename = 'data.txt' % File to which the simulation data will be saved
-        str_LastSimulationData % For GUI simulation data print
+        str_LastSimulationData = zeros(0) % For GUI simulation data print
     end
     
     methods
