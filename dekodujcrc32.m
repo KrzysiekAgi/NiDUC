@@ -1,7 +1,7 @@
 function [IsValid, uncodedData] = dekodujcrc32( data )
 %DEKODUJCRC32 Summary of this function goes here
 %   Detailed explanation goes here
-[m n] = size(data);
+[~,n] = size(data);
 poly = [1 0 0 0 0 0 1 0 0 1 1 0 0 0 0 0 1 0 0 0 1 1 1 0 1 1 0 1 1 0 1 1 1];
 uncodedData = data(1,1:n-32);
 manipulatedData = [uncodedData 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0];

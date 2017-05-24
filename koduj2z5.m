@@ -4,7 +4,7 @@ function [codedData] = koduj2z5( data )
 
 
 [m, n] = size(data);
-codedData = zeros(m, n);
+codedData = zeros(m, n*5);
 
 for i = 1:m
     for j = 1:n
