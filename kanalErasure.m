@@ -9,5 +9,4 @@ j=1;
      end
    end
    
-   corruptedData = vec2mat(corruptedData,m,NaN); %dzielenie vectora na macierz, wypelnianie ostatniego pakietu NaN'ami
 end
