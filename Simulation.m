@@ -47,7 +47,7 @@ classdef Simulation < handle
             obj.SaveFilename = filename;
         end
         
-        function simulate(obj)
+        function [BER, OperationTime, ResendPackageCounter] = simulate(obj)
             % generowanie podzielonych pakietow i czasow przesylania
             WindowSizeGBN = 20; % !!!Placeholder value!!!
             PacketMatrix = generatePackets(obj.PacketsCount, obj.PacketSize);
@@ -162,6 +162,7 @@ classdef Simulation < handle
             % zapis parametrów i wyników do stringu
             format = '%s;%s;%s;%d;%d;%d;%.3f;%.3f;%.3f;%d\n';
             obj.str_LastSimulationData = sprintf(format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
+            BER = ratio;
         end
     end
     
