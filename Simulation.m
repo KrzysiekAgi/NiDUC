@@ -88,8 +88,8 @@ classdef Simulation < handle
                         % przesylanie
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
+                        
                         elseif strcmp(obj.ModelVer,'BEC')
-                            elseif strcmp(obj.ModelVer,'BEC')
                             [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result);
                             result=receivedPacket;
                         elseif strcmp(obj.ModelVer, 'CEC')
@@ -164,15 +164,15 @@ classdef Simulation < handle
                 end
             end
             % -------------------------
-            % por體nanie
+            % por贸wnanie
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
             [~, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix); % [ilosc bledow, procent bledow] - ilosc bledow nieuzywane
-            % zapis parametr體 i wynik體 do pliku
+            % zapis parametr贸w i wynik贸w do pliku
             % fileID = fopen(obj.SaveFilename,'a');
             % format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
             % fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             % fclose(fileID);
-            % zapis parametr體 i wynik體 do stringu
+            % zapis parametr贸w i wynik贸w do stringu
             format = '%s;%s;%s;%d;%d;%d;%.3f;%.3f;%.3f;%d\n';
             obj.str_LastSimulationData = sprintf(format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             BER = ratio;
