@@ -47,10 +47,9 @@ classdef Simulation < handle
             obj.SaveFilename = filename;
         end
         
-        
         function [BER, OperationTime, ResendPackageCounter] = simulate(obj)
             % generowanie podzielonych pakietow i czasow przesylania
-            WindowSizeGBN = 20; % !!!Placeholder value!!!
+            WindowSizeGBN = 5; % !!!Placeholder value!!!
             PacketMatrix = generatePackets(obj.PacketsCount, obj.PacketSize);
             OperationTime = 0;
             ResendPackageCounter = 0;
@@ -71,11 +70,16 @@ classdef Simulation < handle
             TimeoutTime = PacketTransferTime * 10; % !!!Placeholder value!!!
             
             ReceivedPacketMatrix = zeros(1,obj.PacketSize*obj.PacketsCount); % for later BER calculations
+            
+            [,TotalSize] = size(PacketMatrix(1,:)) * obj.PacketsCount;
+            ErrorCycle = floor(1 / obj.ErrorRate);
+            BitsToNextError = ErrorCycle;
             if strcmp(obj.ProtocolVer,'SAW')
                 % ------------STOP AND WAIT-----------
+                
                 for i=1:obj.PacketsCount % po kolei pakiety
                     IsReceived = false;
-                    [x,y]=size(PacketMatrix);
+					[x,y]=size(PacketMatrix);
                     infoErasure=0;
                     for k=1:y
                       result(k)=2;
@@ -85,14 +89,15 @@ classdef Simulation < handle
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
+                            elseif strcmp(obj.ModelVer,'BEC')
                             [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result);
                             result=receivedPacket;
                         elseif strcmp(obj.ModelVer, 'CEC')
-                            receivedPacket = kanalCEC(PacketMatrix(i,:), obj.ErrorRate);
+                            [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(i,:), ErrorCycle, BitsToNextError);
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie/sprawdzenie
-                        if infoErasure==0
+						if infoErasure==0
                         if strcmp(obj.ErrorControlVer,'CRC32')
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                         elseif strcmp(obj.ErrorControlVer,'2z5')
@@ -130,7 +135,7 @@ classdef Simulation < handle
                         elseif strcmp(obj.ModelVer,'BEC')
                             receivedPacket = kanalErasure(PacketMatrix(j,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer, 'CEC')
-                            receivedPacket = kanalCEC(PacketMatrix(j,:), obj.ErrorRate);    
+                            [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(j,:), ErrorCycle, BitsToNextError);   
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie
@@ -163,10 +168,10 @@ classdef Simulation < handle
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
             [~, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix); % [ilosc bledow, procent bledow] - ilosc bledow nieuzywane
             % zapis parametrów i wyników do pliku
-            fileID = fopen(obj.SaveFilename,'a');
-            format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
-            fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
-            fclose(fileID);
+            % fileID = fopen(obj.SaveFilename,'a');
+            % format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
+            % fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
+            % fclose(fileID);
             % zapis parametrów i wyników do stringu
             format = '%s;%s;%s;%d;%d;%d;%.3f;%.3f;%.3f;%d\n';
             obj.str_LastSimulationData = sprintf(format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
