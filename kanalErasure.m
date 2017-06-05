@@ -1,40 +1,21 @@
-function [corruptedData] = kanalErasure (data, p)
-[m,n]=size(data); % tak de facto to jest to wektor (powstanie macierz o wymiarach cos x 1 )
-j=1;
-counter=0;        %licznik ponownie przes³anych bitów
-erased=0;         %macierz indeksów utraconych bitów
-k=1;
-   for i=1:(n*m)  
-     if rand(1,1)>p
-      corruptedData(j)=data(i);
-      j = j + 1;
-     else
-     corruptedData(j)=2;
-     j=j+1;
-    erased(k)=j-1;
-   k=k+1; 
-     endif
-   endfor           %koniec tworzenia macierzy uzyskanej z BEC i macierzy indeksów utraconych bitów
-[a,b]=size(erased); 
-if erased~=0         %jeœli jakieœ bity by³y utracone przesy³amy je ponownie uproszczon¹ funkcj¹
-k=1; 
-   for k=1:b
-     while corruptedData(erased(k))==2            %przesy³anie bitu a¿ do uzyskania poprawnej jego wartoœci
-      corruptedData(erased(k))=(resendBit(data(erased(k)),p));
-      counter=counter+1;
-      endwhile
-     endfor
- endif    
+function [corruptedData, info] = kanalErasure (data, p, result)
+[m,n]=size(data); % tak de facto to jest to wektor (powstanie macierz o wymiarach coÅ› x 1 )
+
+
+for i=1:n
+  if result(i)==2
+    result(i)=sendBit(data(i),p);
+    endif
+endfor
    
-   
-   
-   corruptedData(j)=counter;      %licznik ponownych przes³añ bitów na koniec macierzy wynikowej
+corruptedData=result;   
+info=checkErasure(corruptedData); 
 
 end
 
 
 
-function [bit]= resendBit(data, p)        %uproszona funkcja przesy³ania, przesy³a 1 bit, albo dobrze, alb go traci (wartoœæ 2), p równe p z BEC
+function [bit]= sendBit(data, p)        %uproszona funkcja przesy³ania, przesy³a 1 bit, albo dobrze, alb go traci (wartoœæ 2), p równe p z BEC
   if rand(1,1)>p
     bit=data;
     else
@@ -42,3 +23,13 @@ function [bit]= resendBit(data, p)        %uproszona funkcja przesy³ania, przesy
     endif
   end
     
+
+ function [info]=checkErasure(data)
+    [m,n]=size(data);
+    info=0;
+    for i=1:n
+      if data(i)==2
+        info=1;
+     endif
+     endfor
+    end
