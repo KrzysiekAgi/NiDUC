@@ -3,7 +3,11 @@ function [ corruptedData ] = kanalCEC( data, p )
 %   channel with cyclic errors
 [m,n]=size(data);
 corruptedNumber=round(n*p);
+<<<<<<< HEAD
 if corruptedNumber ~= 0
+=======
+if corruptedNumber~=0
+>>>>>>> 25f61c93f1c6e8e8d264bd1d7813fc486e710a79
 corruptedSpace=round(n/corruptedNumber);
 else 
 corruptedSpace=n+1;
