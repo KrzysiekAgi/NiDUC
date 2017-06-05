@@ -2,14 +2,14 @@ function [corruptedData, info] = kanalErasure (data, p, result)
 [m,n]=size(data); % tak de facto to jest to wektor (powstanie macierz o wymiarach coÅ› x 1 )
 
 
-for i=1:n
-  if result(i)==2
+for i=1:n                               %result to "aktualny" stan otrzymanego pakietu
+  if result(i)==2                       %wszystkie 2 w resulcie s¹ przesy³ane ponownie
     result(i)=sendBit(data(i),p);
     endif
 endfor
    
-corruptedData=result;   
-info=checkErasure(corruptedData); 
+corruptedData=result;                   %nowy result jest zwracany
+info=checkErasure(corruptedData);       %plus informacja czy s¹ w nim jeszcze jakieœ dwójki
 
 end
 
@@ -24,7 +24,7 @@ function [bit]= sendBit(data, p)        %uproszona funkcja przesy³ania, przesy³a
   end
     
 
- function [info]=checkErasure(data)
+ function [info]=checkErasure(data)        %jeœli wektor zawiera jak¹œ dwójkê- zwraca 1
     [m,n]=size(data);
     info=0;
     for i=1:n

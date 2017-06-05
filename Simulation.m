@@ -80,23 +80,23 @@ classdef Simulation < handle
                 for i=1:obj.PacketsCount % po kolei pakiety
                     IsReceived = false;
 					          [x,y]=size(PacketMatrix);
-                    infoErasure=0;
+                    infoErasure=0;              %info na temat dwójek w kanale BEC
                     for k=1:y
-                      result(k)=2;
+                      result(k)=2;              %wektor dwójek rozmiarów pakietu do BEC
                     end
                     while ~IsReceived %notReceived
                         % przesylanie
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
-                            [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result);
-                            result=receivedPacket;
+                            [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result); %pobranie rezultatu przes³ania i info, czy zosta³y jakieœ dwójki
+                            result=receivedPacket;                         %zast¹pienie starego resulta nowym
                         elseif strcmp(obj.ModelVer, 'CEC')
                             [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(i,:), ErrorCycle, BitsToNextError);
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie/sprawdzenie
-					            	if infoErasure==0
+					            	if infoErasure==0                                     %jeœli nie ma dwójek-rozkodowujemy, IsReceived pozostaje falsemS
                            if strcmp(obj.ErrorControlVer,'CRC32')
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                            elseif strcmp(obj.ErrorControlVer,'2z5')
