@@ -79,16 +79,15 @@ classdef Simulation < handle
                 
                 for i=1:obj.PacketsCount % po kolei pakiety
                     IsReceived = false;
-					[x,y]=size(PacketMatrix);
+					          [x,y]=size(PacketMatrix);
                     infoErasure=0;
                     for k=1:y
                       result(k)=2;
-                      end
+                    end
                     while ~IsReceived %notReceived
                         % przesylanie
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
-                        
                         elseif strcmp(obj.ModelVer,'BEC')
                             [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result);
                             result=receivedPacket;
@@ -97,14 +96,14 @@ classdef Simulation < handle
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie/sprawdzenie
-						if infoErasure==0
-                        if strcmp(obj.ErrorControlVer,'CRC32')
+					            	if infoErasure==0
+                           if strcmp(obj.ErrorControlVer,'CRC32')
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
-                        elseif strcmp(obj.ErrorControlVer,'2z5')
+                           elseif strcmp(obj.ErrorControlVer,'2z5')
                             [IsReceived, Packet] = dekoduj2z5(receivedPacket);
-                        elseif strcmp(obj.ErrorControlVer,'PB')
+                            elseif strcmp(obj.ErrorControlVer,'PB')
                             [IsReceived, Packet] = dekodujPB(receivedPacket);
-                        end
+                            end
                         end
                         if ~IsReceived
                             OperationTime = OperationTime + TimeoutTime;
@@ -164,15 +163,15 @@ classdef Simulation < handle
                 end
             end
             % -------------------------
-            % por贸wnanie
+            % por體nanie
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
             [~, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix); % [ilosc bledow, procent bledow] - ilosc bledow nieuzywane
-            % zapis parametr贸w i wynik贸w do pliku
+            % zapis parametr體 i wynik體 do pliku
             % fileID = fopen(obj.SaveFilename,'a');
             % format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
             % fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             % fclose(fileID);
-            % zapis parametr贸w i wynik贸w do stringu
+            % zapis parametr體 i wynik體 do stringu
             format = '%s;%s;%s;%d;%d;%d;%.3f;%.3f;%.3f;%d\n';
             obj.str_LastSimulationData = sprintf(format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             BER = ratio;
