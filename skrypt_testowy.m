@@ -12,7 +12,7 @@ for j = 1:50
 for i = 1:NumberOfSimulations
     
     x = Simulation();
-    x.setModelVer('CEC') % BSC, BEC, CEC
+    x.setModelVer('BSC') % BSC, BEC, CEC
     x.setErrorControlVer('PB') % CRC32, 2z5, PB
     x.setProtocolVer('SAW') % SAW , GBN
     x.setPacketSize(8) % 8/16/64/256/512

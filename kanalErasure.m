@@ -1,5 +1,5 @@
 function [corruptedData] = kanalErasure (data, p)
-[m,n]=size(data); % tak de facto to jest to wektor (powstanie macierz o wymiarach coÅ› x 1 )
+[m,n]=size(data); % tak de facto to jest to wektor (powstanie macierz o wymiarach cos x 1 )
 j=1;
 counter=0;        %licznik ponownie przes³anych bitów
 erased=0;         %macierz indeksów utraconych bitów

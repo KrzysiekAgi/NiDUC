@@ -1,25 +1,19 @@
-function [ corruptedData ] = kanalCEC( data, p )
+function [ corruptedData, BitsToNextError ] = kanalCEC( data, errorCycle, BitsToNextError )
 %UNTITLED Summary of this function goes here
 %   channel with cyclic errors
 [m,n]=size(data);
-corruptedNumber=round(n*p);
-<<<<<<< HEAD
-if corruptedNumber ~= 0
-=======
-if corruptedNumber~=0
->>>>>>> 25f61c93f1c6e8e8d264bd1d7813fc486e710a79
-corruptedSpace=round(n/corruptedNumber);
-else 
-corruptedSpace=n+1;
-end
+corruptedData = zeros(m,n);
 for i=1:n
-  if mod(i,corruptedSpace)==0
-    corruptedData(i)=xor(data(i),1);
-    i=i+1;
+  BitsToNextError = BitsToNextError - 1;
+  if BitsToNextError == 0
+      BitsToNextError = errorCycle;
+      if data(i) == 1
+          corruptedData(i) = 0;
       else
-      corruptedData(i)=data(i);
-      i=i+1;
-    end
-    end
+          corruptedData(i) = 1;
+      end    
+  else
+      corruptedData(i) = data(i);
+  end    
 end
 
