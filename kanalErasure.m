@@ -13,23 +13,5 @@ info=checkErasure(corruptedData);       %plus informacja czy s¹ w nim jeszcze ja
 
 end
 
-
-
-function [bit]= sendBit(data, p)        %uproszona funkcja przesy³ania, przesy³a 1 bit, albo dobrze, alb go traci (wartoœæ 2), p równe p z BEC
-  if rand(1,1)>p
-    bit=data;
-    else
-    bit=2;
-    endif
-  end
     
 
- function [info]=checkErasure(data)        %jeœli wektor zawiera jak¹œ dwójkê- zwraca 1
-    [m,n]=size(data);
-    info=0;
-    for i=1:n
-      if data(i)==2
-        info=1;
-     endif
-     endfor
-    end
