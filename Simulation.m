@@ -140,7 +140,7 @@ classdef Simulation < handle
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(j,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
-                             [receivedPacket, infoErasure(BECcontrol)] = kanalErasure(PacketMatrix(j,:), obj.ErrorRate, result(BECcontrol,:); %pobranie rezultatu przesłania i info, czy zostały jakieś dwójki
+                             [receivedPacket, infoErasure(BECcontrol)] = kanalErasure(PacketMatrix(j,:), obj.ErrorRate, result(BECcontrol,:)); %pobranie rezultatu przesłania i info, czy zostały jakieś dwójki
                             result(BECcontrol,:)=receivedPacket;    
                         elseif strcmp(obj.ModelVer, 'CEC')
                             [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(j,:), ErrorCycle, BitsToNextError);   
