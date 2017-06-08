@@ -80,23 +80,23 @@ classdef Simulation < handle
                 for i=1:obj.PacketsCount % po kolei pakiety
                     IsReceived = false;
 					          [x,y]=size(PacketMatrix);
-                    infoErasure=0;              %info na temat dwójek w kanale BEC
+                    infoErasure=0;              %info na temat dwÃ³jek w kanale BEC
                     for k=1:y
-                      result(k)=2;              %wektor dwójek rozmiarów pakietu do BEC
+                      result(k)=2;              %wektor dwÃ³jek rozmiarÃ³w pakietu do BEC
                     end
                     while ~IsReceived %notReceived
                         % przesylanie
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(i,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
-                            [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result); %pobranie rezultatu przes³ania i info, czy zosta³y jakieœ dwójki
-                            result=receivedPacket;                         %zast¹pienie starego resulta nowym
+                            [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result); %pobranie rezultatu przesÂ³ania i info, czy zostaÂ³y jakieÅ“ dwÃ³jki
+                            result=receivedPacket;                         %zastÂ¹pienie starego resulta nowym
                         elseif strcmp(obj.ModelVer, 'CEC')
                             [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(i,:), ErrorCycle, BitsToNextError);
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie/sprawdzenie
-					            	if infoErasure==0                                     %jeœli nie ma dwójek-rozkodowujemy, IsReceived pozostaje falsemS
+					            	if infoErasure==0                                     %jeÅ“li nie ma dwÃ³jek-rozkodowujemy, IsReceived pozostaje falsemS
                            if strcmp(obj.ErrorControlVer,'CRC32')
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                            elseif strcmp(obj.ErrorControlVer,'2z5')
@@ -119,7 +119,11 @@ classdef Simulation < handle
                 while i <= obj.PacketsCount
                     Responses = zeros(1,WindowSizeGBN);
                     PacketsRecieved = [];
-                    
+                    [x,y]=size(PacketMatrix);
+                    infoErasure=0;              %info na temat dwÃ³jek w kanale BEC
+                    for k=1:y
+                      result(k)=2;              %wektor dwÃ³jek rozmiarÃ³w pakietu do BEC
+                    end
                     % setting smaller last window
                     if i+WindowSizeGBN-1 > obj.PacketsCount
                         WindowSizeGBN = (obj.PacketsCount - i)+1; 
@@ -132,18 +136,22 @@ classdef Simulation < handle
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(j,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
-                            receivedPacket = kanalErasure(PacketMatrix(j,:), obj.ErrorRate);
+                             [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result); %pobranie rezultatu przesÅ‚ania i info, czy zostaÅ‚y jakieÅ› dwÃ³jki
+                            result=receivedPacket;    
                         elseif strcmp(obj.ModelVer, 'CEC')
                             [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(j,:), ErrorCycle, BitsToNextError);   
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie
+                        IsReceived=false;
+                        if infoErasure==0
                         if strcmp(obj.ErrorControlVer,'CRC32')
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                         elseif strcmp(obj.ErrorControlVer,'2z5')
                             [IsReceived, Packet] = dekoduj2z5(receivedPacket);
                         elseif strcmp(obj.ErrorControlVer,'PB')
                             [IsReceived, Packet] = dekodujPB(receivedPacket);
+                        end
                         end
                         Responses(1,WindowStep) = IsReceived;
                         PacketsRecieved(1,(((WindowStep-1)*obj.PacketSize)+1):((WindowStep*obj.PacketSize))) = Packet;
@@ -163,15 +171,15 @@ classdef Simulation < handle
                 end
             end
             % -------------------------
-            % porównanie
+            % porÃ³wnanie
             ReceivedPacketMatrix = vec2mat(ReceivedPacketMatrix,obj.PacketSize);
             [~, ratio] = biterr(PacketMatrixBeforeCoding, ReceivedPacketMatrix); % [ilosc bledow, procent bledow] - ilosc bledow nieuzywane
-            % zapis parametrów i wyników do pliku
+            % zapis parametrÃ³w i wynikÃ³w do pliku
             % fileID = fopen(obj.SaveFilename,'a');
             % format = '%s;%s;%s;%d;%d;%d;%f;%f;%f;%d\n';
             % fprintf(fileID, format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             % fclose(fileID);
-            % zapis parametrów i wyników do stringu
+            % zapis parametrÃ³w i wynikÃ³w do stringu
             format = '%s;%s;%s;%d;%d;%d;%.3f;%.3f;%.3f;%d\n';
             obj.str_LastSimulationData = sprintf(format, obj.ModelVer, obj.ErrorControlVer,obj.ProtocolVer, obj.PacketSize, obj.PacketsCount, obj.BitTransmissionRate, obj.ErrorRate, ratio, OperationTime, ResendPackageCounter);
             BER = ratio;
