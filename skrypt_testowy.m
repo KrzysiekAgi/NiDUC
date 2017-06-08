@@ -12,9 +12,9 @@ for j = 1:50
 for i = 1:NumberOfSimulations
     
     x = Simulation();
-    x.setModelVer('BSC') % BSC, BEC, CEC
+    x.setModelVer('BEC') % BSC, BEC, CEC
     x.setErrorControlVer('PB') % CRC32, 2z5, PB
-    x.setProtocolVer('SAW') % SAW , GBN
+    x.setProtocolVer('GBN') % SAW , GBN
     x.setPacketSize(8) % 8/16/64/256/512
     x.setPacketsCount(10) % 10
     x.setBitTransRate(1000) % raczej nie zmieniac

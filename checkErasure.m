@@ -4,6 +4,6 @@
     for i=1:n
       if data(i)==2
         info=1;
-     endif
-     endfor
+      end
     end
+end
