@@ -152,7 +152,10 @@ classdef Simulation < handle
                         elseif strcmp(obj.ErrorControlVer,'PB')
                             [IsReceived, Packet] = dekodujPB(receivedPacket);
                         end
-                        end
+                        else
+			for p=1:obj.PacketSize
+			Packet(p)=2;
+			end
                         Responses(1,WindowStep) = IsReceived;
                         PacketsRecieved(1,(((WindowStep-1)*obj.PacketSize)+1):((WindowStep*obj.PacketSize))) = Packet;
                         WindowStep = WindowStep + 1;
