@@ -120,31 +120,35 @@ classdef Simulation < handle
                     Responses = zeros(1,WindowSizeGBN);
                     PacketsRecieved = [];
                     [x,y]=size(PacketMatrix);
-                    infoErasure=0;              %info na temat dwójek w kanale BEC
-                    for k=1:y
-                      result(k)=2;              %wektor dwójek rozmiarów pakietu do BEC
-                    end
                     % setting smaller last window
                     if i+WindowSizeGBN-1 > obj.PacketsCount
                         WindowSizeGBN = (obj.PacketsCount - i)+1; 
                     end
                     
+		    for u=1:WindowSizeGBN
+                    for k=1:y
+                      result(u,k)=2;             
+                    end
+		    end
+		    
                     % sending window size number of packets
                     WindowStep = 1;
                     for j=i:(i+WindowSizeGBN-1) 
                         % przesylanie
+			BECcontrol=j-i+1;
+			infoErasure(BECcontrol)=0; 
                         if strcmp(obj.ModelVer,'BSC')  
                             receivedPacket = kanalBSC(PacketMatrix(j,:), obj.ErrorRate);
                         elseif strcmp(obj.ModelVer,'BEC')
-                             [receivedPacket, infoErasure] = kanalErasure(PacketMatrix(i,:), obj.ErrorRate, result); %pobranie rezultatu przesłania i info, czy zostały jakieś dwójki
-                            result=receivedPacket;    
+                             [receivedPacket, infoErasure(BECcontrol)] = kanalErasure(PacketMatrix(j,:), obj.ErrorRate, result(BECcontrol); %pobranie rezultatu przesłania i info, czy zostały jakieś dwójki
+                            result(BECcontrol)=receivedPacket;    
                         elseif strcmp(obj.ModelVer, 'CEC')
                             [receivedPacket, BitsToNextError] = kanalCEC(PacketMatrix(j,:), ErrorCycle, BitsToNextError);   
                         end
                         OperationTime = OperationTime + PacketTransferTime;
                         % odkodowanie
                         IsReceived=false;
-                        if infoErasure==0
+                        if infoErasure(BECcontrol)==0
                         if strcmp(obj.ErrorControlVer,'CRC32')
                             [IsReceived, Packet] = dekodujcrc32(receivedPacket);
                         elseif strcmp(obj.ErrorControlVer,'2z5')
